@@ -16,6 +16,18 @@ Domain Path:  /languages
 	
 	//if (!defined('EMPTY_TRASH_DAYS')) define( 'EMPTY_TRASH_DAYS', 0 );
 
+	define('WSSK_PLUGIN', __FILE__);
+	
+	define('WSSK_PLUGIN_DIR', untrailingslashit(dirname(WSSK_PLUGIN)));
+
+/*	Define path to json products collection below. 
+ *	For testing you might need optimize process, for that purpose, define path for 1 iteration, and set  		*	WSSK_TESTING constant to true, then quote WSSK_REMOTE_REQUEST_LINK.
+ */	
+ 
+//	define('WSSK_REMOTE_REQUEST_LINK', 'https://wp.webspark.dev/wp-api/products');
+
+	define('WSSK_TESTING', true);
+
 	require_once('sync.php');
 	
 	function wssk_activation() {

@@ -9,35 +9,42 @@
 		global $get_skus;
 		$get_skus = [];		
 
-/*		$request = wp_remote_get( 'https://wp.webspark.dev/wp-api/products', ['timeout' => 20] );
-		
-		if (is_wp_error($request)) {
-			wssw_showmsg("Error!");
-			return false;
-		}
-		
-		$body = json_decode(wp_remote_retrieve_body( $request ));
-
-		foreach ($body->data as $item) {
-			$get_skus[] = $item->sku;
-		}
-				
-		if ((!empty($body))&&(is_array($body->data))) {
-			$count = count($body->data);
-			wssw_showmsg("Items: $count <br />");
-			file_put_contents('request.txt', serialize($body));
-		}
-*/
-// Only for testing-----
-		$body = unserialize(file_get_contents('request.txt'));	
-
-		if ((!empty($body))&&(is_array($body->data))) {
-			$count = count($body->data);
-			//wssw_showmsg("Items: " . $count);
-			$rand = rand(0, 1990);	
-			for($i = $rand; $i < ($rand + 10); $i++) {
-				$get_skus[$i] = $body->data[$i]->sku;			
+		if (defined('WSSK_REMOTE_REQUEST_LINK')) {
+			$request = wp_remote_get( WSSK_REMOTE_REQUEST_LINK, ['timeout' => 20] );
+			
+			if (is_wp_error($request)) {
+				wssw_showmsg("Error!");
+				return false;
 			}
+			
+			$body = json_decode(wp_remote_retrieve_body( $request ));
+
+			if (WSSK_TESTING) {
+				if ((!empty($body))&&(is_array($body->data))) {
+					$count = count($body->data);
+					//wssw_showmsg("Items: $count");
+					file_put_contents(WSSK_PLUGIN_DIR . '\request.txt', serialize($body));
+				}
+			} else {
+				foreach ($body->data as $item) {
+					$get_skus[] = $item->sku;
+				}				
+			}
+		}
+// Only for testing-----
+		if ((WSSK_TESTING)&&(file_exists(WSSK_PLUGIN_DIR . '\request.txt'))) {
+			$body = unserialize(file_get_contents(WSSK_PLUGIN_DIR . '\request.txt'));	
+
+			if ((!empty($body))&&(is_array($body->data))) {
+				$count = count($body->data);
+				//wssw_showmsg("Items: " . $count);
+				$rand = rand(0, $count - 10);	
+				for($i = $rand; $i < ($rand + 10); $i++) {
+					$get_skus[$i] = $body->data[$i]->sku;			
+				}
+			}
+		} else {
+			if (file_exists(WSSK_PLUGIN_DIR . '\request.txt')) unlink(WSSK_PLUGIN_DIR . '\request.txt');
 		}
 // ==================		
 		do_action('wssk_getdata');
@@ -105,7 +112,7 @@
 	
 	function wssk_cleartrash() {
 		$trash_p = wc_get_products( [
-			'limit' => 100,
+			'limit' => 50,
 			'status' => 'trash'
 		]);
 		foreach ($trash_p as $key => $val) {
@@ -121,7 +128,7 @@
 	
 	if (!wp_doing_ajax()) add_action('plugin_loaded', 'wssk_getdata');
 
-	add_action('plugin_loaded', 'wssk_cleartrash');
+	//add_action('wp_loaded', 'wssk_cleartrash');
 	
 	/*if( ! wp_next_scheduled( 'wssk_synkhook' ) ) {
 			wp_schedule_event( time(), 'hourly', 'wssk_synkhook' );
